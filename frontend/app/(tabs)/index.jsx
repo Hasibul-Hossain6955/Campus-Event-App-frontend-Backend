@@ -4,6 +4,7 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useAuthStore } from "../../store/authStore";
 import { useEffect, useState } from "react";
@@ -75,7 +76,11 @@ export default function Home() {
   }, []);
 
   //new adding extra feature
-  const handleLoadMore = async () => {};
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      fetchBook(page + 1);
+    }
+  };
 
   const toggleSelectEvent = (item) => {
     const isSelected = selectedEvents.some((e) => e._id === item._id);
@@ -163,7 +168,7 @@ export default function Home() {
     return stars;
   };
 
-  console.log(books);
+  //console.log(books);
   return (
     <View style={styles.container}>
       <FlatList
@@ -180,6 +185,8 @@ export default function Home() {
             tintColor={COLORS.primary}
           />
         }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.headerTitle}>🚀 Event Launcher</Text>
@@ -198,6 +205,15 @@ export default function Home() {
               Be the first to share a book!
             </Text>
           </View>
+        }
+        ListFooterComponent={
+          loading && page > 1 ? (
+            <ActivityIndicator
+              size="small"
+              color={COLORS.primary}
+              style={{ marginVertical: 10 }}
+            />
+          ) : null
         }
       />
 

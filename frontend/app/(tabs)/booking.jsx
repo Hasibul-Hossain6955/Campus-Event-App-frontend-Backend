@@ -11,11 +11,13 @@ import {
   Alert,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import COLORS from "../../constants/colors";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import useNotificationStore from "../notification/useNotificationStore";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Booking() {
   const { events } = useLocalSearchParams();
@@ -34,6 +36,9 @@ export default function Booking() {
 
   const [registrationId, setRegistrationId] = useState("");
   const qrRef = useRef();
+
+  //add Notification
+  const { addNotification } = useNotificationStore();
 
   useEffect(() => {
     try {
@@ -75,6 +80,16 @@ export default function Booking() {
     // Close form modal, show confirmation modal
     setModalVisible(false);
     setConfirmationVisible(true);
+
+    //for notification adding this
+    setConfirmationVisible(true);
+    addNotification({
+      id: registrationId, // optional
+      title: selectedEvent?.title,
+      name: formData.name,
+      email: formData.email,
+      time: new Date().toISOString(),
+    });
   };
 
   const handleRemoveEvent = (id) => {
@@ -212,6 +227,19 @@ export default function Booking() {
           ))
         )}
       </ScrollView>
+
+      {/**add notification portion */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          padding: 12,
+        }}
+      >
+        <TouchableOpacity onPress={() => router.push("/notifications")}>
+          <Ionicons name="notifications-outline" size={28} color="#333" />
+        </TouchableOpacity>
+      </View>
 
       {/* Registration Form Modal */}
       <Modal

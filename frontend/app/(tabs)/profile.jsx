@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Alert, FlatList, TouchableOpacity } from "react-native";
 
 import { useRouter } from "expo-router";
@@ -10,11 +10,18 @@ import LogoutButton from "../../components/LogoutButton";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "../../constants/colors";
 import { Image } from "expo-image";
+import { useFocusEffect } from "@react-navigation/native";
+import { Modal, TextInput, Pressable } from "react-native";
 
 export default function Profile() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  //for the rating perpose from the user feedback
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
 
   const { token } = useAuthStore();
   const router = useRouter();
@@ -44,6 +51,12 @@ export default function Profile() {
       setIsLoading(false);
     }
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   useEffect(() => {
     fetchData();
@@ -157,6 +170,113 @@ export default function Profile() {
           </View>
         }
       />
+      {/**Rating from the user feedback with Modal part  */}
+      <TouchableOpacity
+        style={{
+          backgroundColor: COLORS.primary,
+          padding: 12,
+          borderRadius: 10,
+          marginHorizontal: 20,
+          marginBottom: 10,
+          alignItems: "center",
+        }}
+        onPress={() => setShowRatingModal(true)}
+      >
+        <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>
+          ⭐ Rate Our App
+        </Text>
+      </TouchableOpacity>
+      <Modal
+        visible={showRatingModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRatingModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              width: "85%",
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
+            >
+              Rate Our App
+            </Text>
+            <Text style={{ marginBottom: 10 }}>
+              How would you rate your experience?
+            </Text>
+
+            {/* Rating Stars */}
+            <View style={{ flexDirection: "row", marginBottom: 15 }}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <TouchableOpacity key={i} onPress={() => setRating(i)}>
+                  <Ionicons
+                    name={i <= rating ? "star" : "star-outline"}
+                    size={30}
+                    color={i <= rating ? "#f4b400" : COLORS.textSecondary}
+                    style={{ marginRight: 5 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Feedback Input */}
+            <TextInput
+              placeholder="Tell us how we can improve..."
+              value={feedback}
+              onChangeText={setFeedback}
+              multiline
+              numberOfLines={4}
+              style={{
+                borderColor: COLORS.textSecondary,
+                borderWidth: 1,
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 15,
+                textAlignVertical: "top",
+              }}
+            />
+
+            {/* Buttons */}
+            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+              <Pressable
+                onPress={() => setShowRatingModal(false)}
+                style={{ marginRight: 15 }}
+              >
+                <Text style={{ color: COLORS.textSecondary }}>Cancel</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  setShowRatingModal(false);
+                  Alert.alert(
+                    "Thank You! 💖",
+                    "Your feedback has been recorded."
+                  );
+
+                  setRating(0);
+                  setFeedback("");
+                }}
+              >
+                <Text style={{ color: COLORS.primary, fontWeight: "bold" }}>
+                  Submit
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
