@@ -1,4 +1,10 @@
-import { View, Text, FlatList, RefreshControl } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  RefreshControl,
+  TouchableOpacity,
+} from "react-native";
 import { useAuthStore } from "../../store/authStore";
 import { useEffect, useState } from "react";
 import styles from "../../assets/styles/home.styles";
@@ -7,6 +13,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "../../constants/colors";
 import { formatPublishDate } from "../../lib/utils";
+import { useRouter } from "expo-router";
 
 export default function Home() {
   //for testing  const { logout } = useAuthStore();
@@ -16,6 +23,8 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const router = useRouter();
+  const [selectedEvents, setSelectedEvents] = useState([]);
 
   const fetchBook = async (pageNum = 1, refresh = false) => {
     try {
@@ -65,9 +74,28 @@ export default function Home() {
     fetchBook();
   }, []);
 
+  //new adding extra feature
   const handleLoadMore = async () => {};
 
+  const toggleSelectEvent = (item) => {
+    const isSelected = selectedEvents.some((e) => e._id === item._id);
+    if (isSelected) {
+      setSelectedEvents((prev) => prev.filter((e) => e._id !== item._id));
+    } else {
+      setSelectedEvents((prev) => [...prev, item]);
+    }
+  };
+  const handleMultiBooking = () => {
+    router.push({
+      pathname: "/booking",
+      params: {
+        events: encodeURIComponent(JSON.stringify(selectedEvents)),
+      },
+    });
+  };
+
   const renderItem = ({ item }) => {
+    const isSelected = selectedEvents.some((e) => e._id === item._id);
     return (
       <View style={styles.bookCard}>
         <View style={styles.bookHeader}>
@@ -97,6 +125,24 @@ export default function Home() {
           <Text style={styles.data}>
             Shared on{formatPublishDate(item.createdAt)}
           </Text>
+
+          {/* 👇 Booking Button */}
+          <TouchableOpacity
+            style={{
+              marginTop: 12,
+              backgroundColor: isSelected ? "#aaa" : COLORS.primary,
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 10,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onPress={() => toggleSelectEvent(item)}
+          >
+            <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>
+              {isSelected ? "Remove" : "Select"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -154,6 +200,31 @@ export default function Home() {
           </View>
         }
       />
+
+      {selectedEvents.length > 0 && (
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            bottom: 20,
+            left: 20,
+            right: 20,
+            backgroundColor: COLORS.primary,
+            padding: 15,
+            borderRadius: 10,
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 3,
+            elevation: 5,
+          }}
+          onPress={handleMultiBooking}
+        >
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
+            Book {selectedEvents.length} Event(s)
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/** <TouchableOpacity onPress={logout}>
         <Text>Logout</Text>

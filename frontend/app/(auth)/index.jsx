@@ -46,6 +46,12 @@ export default function Login() {
           />
         </View>
 
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Campus Event</Text>
+          <Text style={styles.subtitle}>Share your popular Event</Text>
+        </View>
+
         <View style={styles.card}>
           <View style={styles.formContainer}>
             {/*Email */}
